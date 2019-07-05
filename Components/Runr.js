@@ -316,7 +316,7 @@ export default class Runr extends Component {
     sayPace(millis){
         let minutes = Math.floor(millis / 60000);
         let seconds = Number.parseFloat(((millis % 60000) / 1000)).toFixed(0);
-        Tts.speak("Pace is " + minutes + " and " + seconds + " seconds. ");
+        Tts.speak("Pace is " + minutes + " minutes and " + seconds + " seconds. ");
     }
 
     updatePace(newPace){
@@ -469,7 +469,14 @@ export default class Runr extends Component {
         longitudes.push(position.coords.longitude)
         times.push(finalTime)
 
-        Tts.speak("You ran "+Number.parseFloat(this.state.distance).toFixed(2)+" miles in "+formatted+ " That's a "+this.state.pace+"/ a mile Pace!")
+
+        let minutes = Math.floor(delta / 60000)
+        let seconds = Number.parseFloat(((delta % 60000) / 1000)).toFixed(0)
+        let paceT = (finalTime - this.state.starttime) / this.state.distance
+        let paceMinutes = Math.floor(paceT / 60000)
+        let paceSeconds = Number.parseFloat(((paceT % 60000) / 1000)).toFixed(0)
+
+        Tts.speak("You ran "+Number.parseFloat(this.state.distance).toFixed(2)+" miles in " + minutes + " minutes and " + seconds + " seconds. " + "Average Pace was " + paceMinutes+" minutes and " + paceSeconds + " seconds.")
 
         var ObjStore = {
             endTime: finalTime,
