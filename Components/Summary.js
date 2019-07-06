@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import {AppRegistry,StyleSheet,Text,View,AsyncStorage, Button, Alert, SafeAreaView, TouchableOpacity} from 'react-native';
-import MapView, {PROVIDER_GOOGLE} from 'react-native-maps';
+import MapView, {PROVIDER_GOOGLE, Polyline} from 'react-native-maps';
 import { Stopwatch, Timer } from 'react-native-stopwatch-timer';
 import Tts from 'react-native-tts';
 
@@ -20,7 +20,12 @@ stylo=StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center'
+    },
+    mapFill: {
+        ...StyleSheet.absoluteFillObject,
     }
+
+
 
 });
 
@@ -60,6 +65,16 @@ export default class Summary extends Component {
                     />
                 </View>
                 <View style={{flex: 3, backgroundColor:'#f2f2f2'}}>
+                    <MapView style={stylo.mapFill} region={this.props.region}>
+                    	<Polyline
+                    		coordinates={this.props.coordinates}
+                    		strokeColor="#000" // fallback for when `strokeColors` is not supported by the map-provider
+                    		strokeColors={[
+                    			'green',
+                    		]}
+                    		strokeWidth={6}
+                    	/>
+                    </MapView>
                 </View>
                 <View style={stylo.centerAlign}>
                     <Button

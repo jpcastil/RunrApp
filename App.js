@@ -511,9 +511,9 @@ class TrakrScreen extends Component {
 
 
 const TabNavigator = createBottomTabNavigator({
-    Makr: MakrScreen,
     Runr: RunrScreen,
-    Trakr: TrakrScreen,
+    Makr: MakrScreen,
+    Trakr: TrakrScreen
 
 });
 

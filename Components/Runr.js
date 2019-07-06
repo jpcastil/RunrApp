@@ -78,7 +78,8 @@ const styles = StyleSheet.create({
     },
     hideAll : {
         display: 'none',
-    }
+    },
+
 
 
 });
@@ -176,7 +177,22 @@ export default class Runr extends Component {
                 time: '30:32',
                 pace: '9: 61',
             },
-            showScreen: false
+            showScreen:false,
+            coordinates: [
+                { latitude: 37.8025259, longitude: -122.4351431 },
+                { latitude: 37.7896386, longitude: -122.421646 },
+                { latitude: 37.7665248, longitude: -122.4161628 },
+                { latitude: 37.7734153, longitude: -122.4577787 },
+                { latitude: 37.7948605, longitude: -122.4596065 },
+                { latitude: 37.8025259, longitude: -122.4351431 }
+            ],
+            regionSummary:{
+                latitude: 37.78825,
+                longitude: -122.4324,
+                latitudeDelta: 0.04,
+                longitudeDelta: 0.03
+            },
+
 
         }
     }
@@ -185,6 +201,8 @@ export default class Runr extends Component {
         this.geoListen()
         this.createObject()
     }
+
+
 
     createObject = async () => {
         let values
@@ -207,7 +225,7 @@ export default class Runr extends Component {
     }
 
     printObject = () =>{
-        console.log(this.state.formData)
+        console.log(latitudes)
     }
     checkDistance = (position) => {
         let currentTime = new Date()
@@ -229,6 +247,70 @@ export default class Runr extends Component {
             }
         }
     }
+    setCoordinatesObject = () => {
+        var i = 0
+        let coordinates = []
+        let obj
+        var average = 0
+        let tempLat = 0
+        let tempLon = 0
+        let deltaLat = 0
+        let deltaLon = 0
+        while (i < latitudes.length){
+            tempLat = latitudes.pop()
+            tempLon = longitudes.pop()
+
+            if (coordinates.length > 1){
+                if (Math.abs(tempLat - coordinates[ coordinates.length - 1 ].latitude) > deltaLat){
+                    deltaLat = Math.abs(tempLat - coordinates[ coordinates.length - 1 ].latitude)
+                }
+                if (Math.abs(tempLon - coordinates[ coordinates.length - 1 ].longitude) > deltaLon){
+                    deltaLon = Math.abs(tempLon - coordinates[ coordinates.length - 1 ].longitude)
+                }
+            }
+
+            obj = {latitude: tempLat, longitude: tempLon}
+            coordinates.push(obj)
+            i = i + 1
+        }
+
+
+        let X = []
+        let Y = []
+        let Z = []
+        i = 0
+        while (i < latitudes.length){
+            X.push(Math.cos(0.0174533 * latitudes[i]) * Math.cos(0.0174533 * longitudes[i]))
+            Y.push(Math.cos(0.0174533 * latitudes[i]) * Math.sin(0.0174533 * longitudes[i]))
+            Z.push(Math.sin(0.0174533 * latitudes[i]))
+            i = i + 1
+        }
+
+        let x = X.reduce(function(x, y){ return x + y })/X.length
+        let y = Y.reduce(function(x, y){ return x + y })/Y.length
+        let z = Z.reduce(function(x, y){ return x + y })/Z.length
+
+        let Lon = Math.atan2(y, x)
+        let Hyp = Math.sqrt(x * x + y * y)
+        let Lat = Math.atan2(z, Hyp)
+
+        Lat = Lat * 57.2958
+        Lon = Lon * 57.2958
+
+        this.setState({
+            coordinates: coordinates,
+            regionSummary:{
+                latitude: Lat,
+                longitude: Lon,
+                latitudeDelta: deltaLat + 0.03,
+                longitudeDelta: deltaLon + 0.03
+            }
+        });
+
+    }
+
+
+
     checkPace = (distanceTraveled, currentTime) => {
         var deltaTime
         if (this.state.pastTime === null){
@@ -295,6 +377,7 @@ export default class Runr extends Component {
             }
         })
     }
+
     appendData = (position) =>{
         this.checkDistance(position)
         let newDate = new Date()
@@ -316,7 +399,7 @@ export default class Runr extends Component {
     sayPace(millis){
         let minutes = Math.floor(millis / 60000);
         let seconds = Number.parseFloat(((millis % 60000) / 1000)).toFixed(0);
-        Tts.speak("Pace is " + minutes + " minutes and " + seconds + " seconds. ");
+        Tts.speak("Pace is " + minutes + "minutes and " + seconds + " seconds. ");
     }
 
     updatePace(newPace){
@@ -454,6 +537,7 @@ export default class Runr extends Component {
         this.geoListen()
     }
     finishFunction = (position) =>{
+        this.setCoordinatesObject()
         this.setState({
             finished: ! this.state.finished
         });
@@ -579,6 +663,7 @@ export default class Runr extends Component {
                         >
                     </MapView>
                 </View>
+                <Text onPress={this.printObject}>PRINT OBJ</Text>
 
                 <View style={[styles.flexOne, styles.switchToRow, styles.alignHorizontally, styles.alignVertically]}>
                    <Button
@@ -611,7 +696,7 @@ export default class Runr extends Component {
                </View>
                </View>
                <View style={this.state.showScreen ? styles.fill : styles.hideAll}>
-                   <Summary func={this.showScreen} runObject={this.state.runObject}/>
+                   <Summary func={this.showScreen} runObject={this.state.runObject} region={this.state.regionSummary} coordinates={this.state.coordinates}/>
                </View>
             </View>
        );
