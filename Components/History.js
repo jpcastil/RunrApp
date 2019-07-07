@@ -2,7 +2,7 @@ import React, {Component} from 'react';
 import {AppRegistry,StyleSheet,Text,View,AsyncStorage, Button, Alert, FlatList} from 'react-native';
 import Summary from './Summary'
 
-const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'November', 'December']
 styless=StyleSheet.create({
     backLight: {
@@ -46,6 +46,20 @@ export default class History extends Component {
                 time: 'PlaceHolder Time',
                 pace: 'PACEHolder',
             },
+            coordinates: [
+                { latitude: 37.8025259, longitude: -122.4351431 },
+                { latitude: 37.7896386, longitude: -122.421646 },
+                { latitude: 37.7665248, longitude: -122.4161628 },
+                { latitude: 37.7734153, longitude: -122.4577787 },
+                { latitude: 37.7948605, longitude: -122.4596065 },
+                { latitude: 37.8025259, longitude: -122.4351431 }
+            ],
+            regionSummary:{
+                latitude: 37.78825,
+                longitude: -122.4324,
+                latitudeDelta: 0.04,
+                longitudeDelta: 0.03
+            },
         }
     }
 
@@ -61,7 +75,8 @@ export default class History extends Component {
 
     getFullDate = (starttime) => {
         let parsed = new Date(starttime)
-        let returnVal = months[ parsed.getMonth() ] + ' ' + parsed.getDay() + ', ' + parsed.getFullYear()
+        let returnVal = months[ parsed.getMonth() ] + ' ' + parsed.getDate() + ', ' + parsed.getFullYear()
+
         return returnVal
     }
 
@@ -139,6 +154,8 @@ export default class History extends Component {
                                     <Text onPress={() => {
 
                                     let parsed = new Date(item.starttime)
+
+
                                     this.setState({
                                         display: ! this.state.display,
                                         runObject : {
@@ -148,6 +165,14 @@ export default class History extends Component {
                                             time: this.getTime(item.starttime, item.endTime),
                                             pace: item.avgPace,
                                         },
+                                        regionSummary:{
+                                            latitude: item.startLocation.latitude,
+                                            longitude: item.startLocation.longitude,
+                                            latitudeDelta: item.distance * 0.03,
+                                            longitudeDelta: item.distance * 0.03
+                                        },
+                                        coordinates: item.coordinates
+
                                     });
                                     }} style={{fontSize: 30, color: 'blue', paddingRight: 10}}>>></Text>
                             </View>
@@ -157,7 +182,7 @@ export default class History extends Component {
                 </View>
 
                 <View style={[! this.state.display ? styless.displayNone : styless.displayFlex]}>
-                    <Summary runObject={this.state.runObject} func={this.changeDisplay}/>
+                    <Summary runObject={this.state.runObject} func={this.changeDisplay} region={this.state.regionSummary} coordinates={this.state.coordinates}/>
                 </View>
             </View>
        );

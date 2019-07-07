@@ -7,6 +7,7 @@ import AsyncStorage from '@react-native-community/async-storage';
 import Summary from './Components/Summary'
 import History from './Components/History'
 
+ console.disableYellowBox = true;
 
 
 const contentContainer = {
@@ -511,10 +512,9 @@ class TrakrScreen extends Component {
 
 
 const TabNavigator = createBottomTabNavigator({
-    Runr: RunrScreen,
     Makr: MakrScreen,
+    Runr: RunrScreen,
     Trakr: TrakrScreen
-
 });
 
 

@@ -33,7 +33,31 @@ export default class Summary extends Component {
 
     constructor(props){
         super(props)
+        this.state = {
+            coordinates : []
+        }
 
+    }
+
+    rendrFunction = () => {
+    
+        let c = []
+        let i = 0
+
+
+
+        while (i < this.props.coordinates.length){
+            console.log(c)
+            c.push(this.props.coordinates[i])
+            setTimeout(
+                function() {
+                    this.setState({coordinates: c});
+                }
+                .bind(this),
+                1000
+                );
+            i = i + 1
+        }
     }
 
 
@@ -62,17 +86,15 @@ export default class Summary extends Component {
                     <Button
                       title="Rendr"
                       color="red"
+                      onPress={this.rendrFunction}
                     />
                 </View>
                 <View style={{flex: 3, backgroundColor:'#f2f2f2'}}>
                     <MapView style={stylo.mapFill} region={this.props.region}>
                     	<Polyline
-                    		coordinates={this.props.coordinates}
-                    		strokeColor="#000" // fallback for when `strokeColors` is not supported by the map-provider
-                    		strokeColors={[
-                    			'green',
-                    		]}
-                    		strokeWidth={6}
+                    		coordinates={this.state.coordinates}
+                    		strokeColor="green"
+                    		strokeWidth={3}
                     	/>
                     </MapView>
                 </View>

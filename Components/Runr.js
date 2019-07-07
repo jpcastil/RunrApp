@@ -5,7 +5,7 @@ import { Stopwatch, Timer } from 'react-native-stopwatch-timer';
 import Tts from 'react-native-tts';
 import Summary from './Summary'
 
-const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'November', 'December']
 const styles = StyleSheet.create({
     buttonLayout: {
@@ -118,7 +118,7 @@ let instantPace = {
     long2: null,
     time2 : null,
 }
-
+let coordinates = []
 
 const options = {
     enableHighAccuracy: true,
@@ -192,6 +192,7 @@ export default class Runr extends Component {
                 latitudeDelta: 0.04,
                 longitudeDelta: 0.03
             },
+            co: []
 
 
         }
@@ -248,66 +249,19 @@ export default class Runr extends Component {
         }
     }
     setCoordinatesObject = () => {
-        var i = 0
-        let coordinates = []
-        let obj
-        var average = 0
-        let tempLat = 0
-        let tempLon = 0
-        let deltaLat = 0
-        let deltaLon = 0
-        while (i < latitudes.length){
-            tempLat = latitudes.pop()
-            tempLon = longitudes.pop()
-
-            if (coordinates.length > 1){
-                if (Math.abs(tempLat - coordinates[ coordinates.length - 1 ].latitude) > deltaLat){
-                    deltaLat = Math.abs(tempLat - coordinates[ coordinates.length - 1 ].latitude)
-                }
-                if (Math.abs(tempLon - coordinates[ coordinates.length - 1 ].longitude) > deltaLon){
-                    deltaLon = Math.abs(tempLon - coordinates[ coordinates.length - 1 ].longitude)
-                }
-            }
-
-            obj = {latitude: tempLat, longitude: tempLon}
-            coordinates.push(obj)
-            i = i + 1
-        }
-
-
-        let X = []
-        let Y = []
-        let Z = []
-        i = 0
-        while (i < latitudes.length){
-            X.push(Math.cos(0.0174533 * latitudes[i]) * Math.cos(0.0174533 * longitudes[i]))
-            Y.push(Math.cos(0.0174533 * latitudes[i]) * Math.sin(0.0174533 * longitudes[i]))
-            Z.push(Math.sin(0.0174533 * latitudes[i]))
-            i = i + 1
-        }
-
-        let x = X.reduce(function(x, y){ return x + y })/X.length
-        let y = Y.reduce(function(x, y){ return x + y })/Y.length
-        let z = Z.reduce(function(x, y){ return x + y })/Z.length
-
-        let Lon = Math.atan2(y, x)
-        let Hyp = Math.sqrt(x * x + y * y)
-        let Lat = Math.atan2(z, Hyp)
-
-        Lat = Lat * 57.2958
-        Lon = Lon * 57.2958
-
         this.setState({
-            coordinates: coordinates,
-            regionSummary:{
-                latitude: Lat,
-                longitude: Lon,
-                latitudeDelta: deltaLat + 0.03,
-                longitudeDelta: deltaLon + 0.03
-            }
+            regionSummary: {
+                latitude: this.state.startLocation.latitude,
+                longitude: this.state.startLocation.longitude,
+                latitudeDelta: this.state.distance * 0.03,
+                longitudeDelta: this.state.distance * 0.03
+            },
+            co: coordinates
         });
 
+
     }
+
 
 
 
@@ -389,10 +343,12 @@ export default class Runr extends Component {
                 this.updatePace(newPace)
             }
         }
-
+        let x = {latitude: position.coords.latitude, longitude: position.coords.longitude}
+        coordinates.push(x)
         latitudes.push(position.coords.latitude)
         longitudes.push(position.coords.longitude)
         times.push(newDate)
+        console.log(coordinates)
     }
 
 
@@ -537,6 +493,8 @@ export default class Runr extends Component {
         this.geoListen()
     }
     finishFunction = (position) =>{
+        let x = {latitude: position.coords.latitude, longitude: position.coords.longitude}
+        coordinates.push(x)
         this.setCoordinatesObject()
         this.setState({
             finished: ! this.state.finished
@@ -548,7 +506,6 @@ export default class Runr extends Component {
         this.updateDistance(position)
         let newPace = this.convertMillis((finalTime - this.state.starttime) / this.state.distance)
         this.updatePace(newPace)
-
         latitudes.push(position.coords.latitude)
         longitudes.push(position.coords.longitude)
         times.push(finalTime)
@@ -569,18 +526,23 @@ export default class Runr extends Component {
             longs: longitudes,
             times: times,
             starttime: this.state.starttime,
-            distance: this.state.distance
+            distance: this.state.distance,
+            coordinates: coordinates,
+            startLocation: this.state.startLocation
         }
+        coordinates = []
         latitudes = []
         longitudes = []
         times = []
         this.setState({
             runObject : {
                 day: days[ this.state.starttime.getDay() ],
-                date: months[ this.state.starttime.getMonth() ] + ' ' + this.state.starttime.getDay() + ', ' + this.state.starttime.getFullYear(),
+                date: months[ this.state.starttime.getMonth() ] + ' ' + this.state.starttime.getDate() + ', ' + this.state.starttime.getFullYear(),
                 distance: Number.parseFloat(this.state.distance).toFixed(2),
                 time: formatted,
                 pace: newPace,
+                co: coordinates,
+                startLocation: this.state.startLocation,
             },
         })
 
@@ -663,7 +625,7 @@ export default class Runr extends Component {
                         >
                     </MapView>
                 </View>
-                <Text onPress={this.printObject}>PRINT OBJ</Text>
+
 
                 <View style={[styles.flexOne, styles.switchToRow, styles.alignHorizontally, styles.alignVertically]}>
                    <Button
@@ -696,7 +658,7 @@ export default class Runr extends Component {
                </View>
                </View>
                <View style={this.state.showScreen ? styles.fill : styles.hideAll}>
-                   <Summary func={this.showScreen} runObject={this.state.runObject} region={this.state.regionSummary} coordinates={this.state.coordinates}/>
+                   <Summary func={this.showScreen} runObject={this.state.runObject} region={this.state.regionSummary}  coordinates={this.state.co}/>
                </View>
             </View>
        );
